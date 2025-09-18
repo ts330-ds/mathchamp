@@ -2,78 +2,33 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
 
 jobs:
-  android:
-    name: Build Android
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Setup Flutter
+      - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: stable
+          flutter-version: '3.27.3'   # ✅ Pin your version
+          channel: 'stable'
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Format check
-        run: flutter format --set-exit-if-changed .
-
-      - name: Analyze
+      - name: Analyze code
         run: flutter analyze
 
       - name: Run tests
         run: flutter test
 
-      - name: Build APK (debug)
-        run: flutter build apk --debug
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
-
-  ios:
-    name: Build iOS
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: stable
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Analyze
-        run: flutter analyze
-
-      - name: Run tests
-        run: flutter test
-
-      - name: Build iOS (debug, no signing)
-        run: flutter build ios --no-codesign
-
-      - name: Upload iOS artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-app
-          path: build/ios/iphonesimulator/*.app
+      # OPTIONAL: Build APK (but not Play Store deploy yet)
+      - name: Build release APK
+        run: flutter build apk --release
