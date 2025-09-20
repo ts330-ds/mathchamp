@@ -1,7 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:mathchamp/routes/routerConfig.dart';
+import 'package:mathchamp/services/musicPlayerService.dart';
+import 'package:mathchamp/utils/custom_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'feature/setting/cubit/settingCubit.dart';
+
+late final SharedPreferences prefs;
+
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  prefs = await SharedPreferences.getInstance();
+
+  runApp(ScreenUtilInit(
+    designSize: const Size(360, 690),
+    minTextAdapt: true,
+    splitScreenMode: true,// common mobile baseline
+    builder: (context, child) => BlocProvider(
+        create: (_) => SettingsCubit(prefs),
+        child: const MyApp()
+    ),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -10,13 +33,11 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      theme: MathChampTheme.lightTheme,
+      darkTheme: MathChampTheme.darkTheme,
+      routerConfig: RouterConfiguration.router
     );
   }
 }
