@@ -6,9 +6,10 @@ class CustomBackButton extends StatefulWidget {
   final VoidCallback onPressed;
   final CustomPainter painters;
   final IconData iconData;
+  String? btnName;
 
-  const CustomBackButton({super.key, required this.onPressed, required this.painters,
-    this.iconData = Icons.arrow_back});
+   CustomBackButton({super.key, required this.onPressed, required this.painters,
+    this.iconData = Icons.arrow_back, this.btnName});
 
   @override
   State<CustomBackButton> createState() => _CustomBackButtonState();
@@ -32,7 +33,12 @@ class _CustomBackButtonState extends State<CustomBackButton> {
         curve: Curves.easeOut,
         child: CustomPaint(
           painter: widget.painters,
-          child:  SizedBox(
+          child:   widget.btnName!=null?
+          SizedBox(
+            height: 45.w,
+            child: Center(
+              child: Text(widget.btnName!,style: Theme.of(context).textTheme.labelMedium!.copyWith(color: Colors.white),)),
+          ):SizedBox(
             width: 45.w,
             height: 45.w,
             child: Center(

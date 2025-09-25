@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:mathchamp/ads/adsCubit.dart';
+import 'package:mathchamp/feature/home/cubit/gameDetailCubit.dart';
+import 'package:mathchamp/feature/questions/cubit/questionCubit.dart';
 import 'package:mathchamp/routes/routerConfig.dart';
 import 'package:mathchamp/services/musicPlayerService.dart';
 import 'package:mathchamp/utils/custom_theme.dart';
@@ -11,18 +15,29 @@ import 'feature/setting/cubit/settingCubit.dart';
 
 late final SharedPreferences prefs;
 
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await MobileAds.instance.initialize();
   prefs = await SharedPreferences.getInstance();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   runApp(ScreenUtilInit(
     designSize: const Size(360, 690),
     minTextAdapt: true,
-    splitScreenMode: true,// common mobile baseline
-    builder: (context, child) => BlocProvider(
-        create: (_) => SettingsCubit(prefs),
-        child: const MyApp()
+    splitScreenMode: true, // common mobile baseline
+    builder: (context, child) => MultiBlocProvider(
+      providers: [
+        BlocProvider<SettingsCubit>(create: (_) => SettingsCubit(prefs)),
+        BlocProvider<GameDetailCubit>(create: (_) => GameDetailCubit([("Easy", 11, true)])),
+        BlocProvider<QuestionsCubit>(create: (_) => QuestionsCubit()),
+        BlocProvider<AdCubit>(
+            create: (_) => AdCubit()),
+      ],
+      child: const MyApp(
+      ),
     ),
   ));
 }
@@ -33,12 +48,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final adCubit = context.read<AdCubit>();
     return MaterialApp.router(
-      title: 'Flutter Demo',
-      theme: MathChampTheme.lightTheme,
-      darkTheme: MathChampTheme.darkTheme,
-      routerConfig: RouterConfiguration.router
-    );
+        title: 'Flutter Demo',
+        theme: MathChampTheme.lightTheme,
+        debugShowCheckedModeBanner: false,
+        darkTheme: MathChampTheme.darkTheme,
+        routerConfig: RouterConfiguration.router(adCubit));
   }
 }
 
@@ -62,12 +78,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-
         title: Text(widget.title),
       ),
       body: Center(

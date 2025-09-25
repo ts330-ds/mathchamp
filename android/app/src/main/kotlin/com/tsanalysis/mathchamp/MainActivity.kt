@@ -1,4 +1,4 @@
-package com.example.mathchamp
+package com.tsanalysis.mathchamp
 
 import io.flutter.embedding.android.FlutterActivity
 

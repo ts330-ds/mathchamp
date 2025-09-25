@@ -56,6 +56,11 @@ class MathChampTheme {
         fontWeight: FontWeight.bold,
         color: Colors.black,
       ),
+      labelSmall: GoogleFonts.baloo2(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: Colors.black,
+      ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
