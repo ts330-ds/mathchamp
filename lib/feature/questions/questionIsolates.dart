@@ -18,34 +18,34 @@ class QuestionGenerator {
       final random = Random();
       final questions = <Question>[];
 
-      int min = 1, max = 9;
-      int minA=1,maxA=9;
+      int minLast = 1, maxLast = 9;
+      int minFirst=1,maxFirst=9;
       if (firstDigit == 1) {
-        minA = 1;
-        maxA = 9;
+        minFirst = 1;
+        maxFirst = 9;
       } else if (firstDigit == 2) {
-        minA = 11;
-        maxA= 99;
+        minFirst = 11;
+        maxFirst= 99;
       } else if (firstDigit == 3) {
-        minA = 101;
-        maxA = 999;
+        minFirst = 101;
+        maxFirst = 999;
       } else {
-        minA = 1;
-        maxA = 9;
+        minFirst = 1;
+        maxFirst = 9;
       }
 
       if (lastDigit == 1) {
-        min = 1;
-        max = 9;
+        minLast = 1;
+        maxLast = 9;
       } else if (lastDigit == 2) {
-        min = 11;
-        max = 99;
+        minLast = 11;
+        maxLast = 99;
       } else if (lastDigit == 3) {
-        min = 101;
-        max = 999;
+        minLast = 101;
+        maxLast = 999;
       } else {
-        min = 1;
-        max = 9;
+        minLast = 1;
+        maxLast = 9;
       }
 
       for (int i = 0; i < numberOfQuestions; i++) {
@@ -56,13 +56,13 @@ class QuestionGenerator {
 
         switch (gameHeading.toLowerCase()=="mixed"?type:gameHeading.toLowerCase()) {
           case 'addition':
-            int a = minA + random.nextInt(maxA - minA + 1);
+            int a = minFirst + random.nextInt(maxFirst - minFirst + 1);
             int b = (range.$2 > 1) ? 1 + random.nextInt(range.$2 - 1) : 1;
             answer = a + b;
             questionText = "$a + $b = ?";
             break;
           case 'subtraction':
-            int a = minA + random.nextInt(maxA - minA + 1);
+            int a = minFirst + random.nextInt(maxFirst - minFirst + 1);
             int b = (range.$2 > 1) ? 1 + random.nextInt(range.$2 - 1) : 1;
             if(a<b){
               int temp = a;
@@ -73,28 +73,28 @@ class QuestionGenerator {
             questionText = "$a - $b = ?";
             break;
           case 'multiplication':
-            int a = minA + random.nextInt(maxA - minA + 1);
+            int a = minFirst + random.nextInt(maxFirst - minFirst + 1);
             int b = (range.$2 > 1) ? 1 + random.nextInt(range.$2 - 1) : 1;
             answer = a * b;
             questionText = "$a × $b = ?";
             break;
           case 'division':
             if (firstDigit == 1) {
-              min = 1;
-              max = 9;
+              minLast = 1;
+              maxLast = 9;
             } else if (firstDigit == 2) {
-              min = 11;
-              max = 99;
+              minLast = 11;
+              maxLast = 99;
             } else if (firstDigit == 3) {
-              min = 101;
-              max = 999;
+              minLast = 101;
+              maxLast = 999;
             } else {
-              min = 1;
-              max = 9;
+              minLast = 1;
+              maxLast = 9;
             }
             int b = 1 + random.nextInt(range.$2);
-            int kMin = (min / b).ceil();
-            int kMax = (max / b).floor();
+            int kMin = (minLast / b).ceil();
+            int kMax = (maxLast / b).floor();
             if (kMax < kMin) {
               kMax = kMin; // fallback to at least 1 value
             }
@@ -106,23 +106,23 @@ class QuestionGenerator {
             break;
           case 'tables':
             if (firstDigit == 1) {
-              min = 1;
-              max = 9;
+              minLast = 1;
+              maxLast = 9;
             } else if (firstDigit == 2) {
-              min = 11;
-              max = 99;
+              minLast = 11;
+              maxLast = 99;
             } else {
-              min = 1;
-              max = 9;
+              minLast = 1;
+              maxLast = 9;
             }
-            int a = 1+random.nextInt(max);           // table number
+            int a = 1+random.nextInt(maxLast);           // table number
             int b = 1 + Random().nextInt(range.$2); // 1..12
             answer = a * b;
             questionText = "$a × $b = ?";
             break;
 
           case 'square root':
-            answer = 1+ random.nextInt(max);
+            answer = 1+ random.nextInt(maxLast);
             int a = answer * answer;                    // radicand
             questionText = "√$a = ?";
             break;
@@ -137,7 +137,7 @@ class QuestionGenerator {
           default:
             print("i am in default");
             int b = 1 + random.nextInt(range.$2); // avoid 0
-            int k = min + random.nextInt((max ~/ b) - min + 1);
+            int k = minLast + random.nextInt((maxLast ~/ b) - minLast + 1);
             int a = b * k;
             answer = a ~/ b;
             questionText = "$a ÷ $b = ?";

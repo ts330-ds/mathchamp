@@ -14,6 +14,7 @@ class AdCubit extends Cubit<AdsState> {
     loadBannerAd();
     loadInterstitialAd();
     loadRewardedAd();
+    loadCommonBannerAd();
   }
 
   // ---------------- Banner ----------------
@@ -31,6 +32,21 @@ class AdCubit extends Cubit<AdsState> {
     );
 
     banner.load();
+  }
+  void loadCommonBannerAd() {
+    final common_banner_ad = BannerAd(
+      adUnitId: UnitIds.common_bannerUnitID,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          emit(state.copyWith(common_bannerAd: ad as BannerAd)); // listener ka ad object use karo
+        },
+        onAdFailedToLoad: (_, __) => emit(state.copyWith(common_bannerAd: null)),
+      ),
+    );
+
+    common_banner_ad.load();
   }
 
 

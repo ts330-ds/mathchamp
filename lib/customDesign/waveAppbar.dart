@@ -76,7 +76,7 @@ class _DoubleWaveAppBarState extends State<DoubleWaveAppBar> with SingleTickerPr
                   BlocBuilder<SettingsCubit, SettingsState>(
                       builder: (context, state) {
                         if (state.userList.isEmpty) {
-                          return Container(child: Text("User"));
+                          return Text("No User");
                         }
                         if (state.userList.isNotEmpty) {
                           String selectedUser = state.currentUser;

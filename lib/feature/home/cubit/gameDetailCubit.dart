@@ -6,7 +6,7 @@ class GameDetailCubit extends Cubit<GameDetailState> {
 
   GameDetailCubit(this.difficylty)
       : super(GameDetailState(gameHeading: 'Addition', firstDigit: 1,lastDigit: 1, numberOfQuestions: 10, difficulty:
-  difficylty));
+  difficylty,selectedDifficulty: ("Easy",20)));
 
   selectGameFromHome(String name,int firstDigit,int lastDigit) {
     if (lastDigit == 2) {
@@ -48,7 +48,6 @@ class GameDetailCubit extends Cubit<GameDetailState> {
           i == index // only selected index = true
         )
     ];
-
-    emit(state.copyWith(difficulty: newState));
+    emit(state.copyWith(difficulty: newState,selectedDifficulty: (current[index].$1,current[index].$2)));
   }
 }

@@ -11,6 +11,7 @@ class GameDetailState {
   int? lastDigit;
   int? numberOfQuestions;
   List<(String,int,bool)>? difficulty;
+  (String,int)? selectedDifficulty;
 
   GameDetailState({
     this.gameHeading,
@@ -18,6 +19,7 @@ class GameDetailState {
     this.lastDigit,
     this.numberOfQuestions,
     this.difficulty,
+    this.selectedDifficulty
   });
 
   GameDetailState copyWith({
@@ -26,6 +28,7 @@ class GameDetailState {
     int? lastDigit,
     int? numberOfQuestions,
     List<(String,int,bool)>? difficulty,
+    (String,int)? selectedDifficulty
   }) =>
       GameDetailState(
         gameHeading: gameHeading ?? this.gameHeading,
@@ -33,6 +36,7 @@ class GameDetailState {
         lastDigit: lastDigit ?? this.lastDigit,
         numberOfQuestions: numberOfQuestions ?? this.numberOfQuestions,
         difficulty: difficulty ?? this.difficulty,
+        selectedDifficulty: selectedDifficulty ?? this.selectedDifficulty
       );
 
 }

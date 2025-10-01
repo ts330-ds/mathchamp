@@ -41,8 +41,7 @@ abstract class GameList{
     ("1 x 1 Digit", "3 x 4", randomColor, 1,1, "Multiplication"),
     ("2 x 1 Digit", "13 x 4", randomColor, 2,1, "Multiplication"),
     ("2 x 2 Digits", "12 x 13", randomColor, 2,2, "Multiplication"),
-    ("3 x 2 Digits", "112 x 13", randomColor, 3,2, "Multiplication"),
-    ("3 x 3 Digits", "12 x 13", randomColor, 3,3, "Multiplication"),
+    ("3 x 2 Digits", "112 x 13", randomColor, 3,2, "Multiplication")
   ];
   static final List<(String,String,Color,int,int,String)> divison_list = [
     ("2 ÷ 1 Digits", "84 ÷ 4", randomColor, 2,1, "Division"),

@@ -98,10 +98,9 @@ class CommonStartGamescreen extends StatelessWidget {
                           }
                           return CustomBackButton(
                             onPressed: () {
-                              (String, int)? range;
                               questionsCubit.generateQuestions(
                                 numberOfQuestions: state.numberOfQuestions ?? 10,
-                                range: range ?? ("Easy", 10),
+                                range: state.selectedDifficulty ?? ("Easy", 10),
                                 gameHeading: state.gameHeading ?? 'Addition',
                                 firstDigit: state.firstDigit ?? 1,
                                 lastDigit: state.lastDigit ?? 1,
@@ -119,11 +118,11 @@ class CommonStartGamescreen extends StatelessWidget {
                 ),
                 BlocBuilder<AdCubit, AdsState>(
                   builder: (context, state) {
-                    if (state.bannerAd != null) {
+                    if (state.common_bannerAd != null) {
                       return SizedBox(
-                        width: state.bannerAd!.size.width.toDouble(),
-                        height: state.bannerAd!.size.height.toDouble(),
-                        child: AdWidget(ad: state.bannerAd!),
+                        width: state.common_bannerAd!.size.width.toDouble(),
+                        height: state.common_bannerAd!.size.height.toDouble(),
+                        child: AdWidget(ad: state.common_bannerAd!),
                       );
                     }
                     return const SizedBox.shrink();
