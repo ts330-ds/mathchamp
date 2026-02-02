@@ -310,20 +310,14 @@ class QuestionScreen extends StatelessWidget {
           AnimatedContainer(
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutCubic,
-            width: (MediaQuery.of(state.questions.isNotEmpty
-                        ? state.questions.first.questionText.length > 0
-                            ? 320.w
-                            : 320.w
-                        : 320.w) *
-                    progress)
-                .clamp(0, 320.w),
+            width: (320.w * progress).clamp(0, 320.w),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF6BCB77), Color(0xFF4ECDC4)],
               ),
               borderRadius: BorderRadius.circular(6.w),
             ),
-          ),
+          ),//
           // Animated stars
           ...List.generate(state.questions.length, (index) {
             double position = (index + 1) / state.questions.length;

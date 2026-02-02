@@ -139,7 +139,7 @@ class MathChampTheme {
         ),
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: Colors.white,
       shadowColor: Colors.black12,
       elevation: 8,
@@ -164,7 +164,7 @@ class MathChampTheme {
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
     ),
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
       ),
@@ -268,7 +268,7 @@ class MathChampTheme {
         elevation: 6,
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: const Color(0xFF1E1E2E),
       shadowColor: Colors.black45,
       elevation: 8,
@@ -276,7 +276,7 @@ class MathChampTheme {
         borderRadius: BorderRadius.circular(20),
       ),
     ),
-    dialogTheme: DialogTheme(
+    dialogTheme: DialogThemeData(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
       ),
