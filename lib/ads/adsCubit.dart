@@ -15,6 +15,7 @@ class AdCubit extends Cubit<AdsState> {
     loadInterstitialAd();
     loadRewardedAd();
     loadCommonBannerAd();
+    loadResultInterstitialAd();
   }
 
   // ---------------- Banner ----------------
@@ -115,4 +116,38 @@ class AdCubit extends Cubit<AdsState> {
       onRewardEarned(0); // fallback
     }
   }
+
+  void loadResultInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: UnitIds.result_InterstialID,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) => emit(state.copyWith(result_interstitialAd: ad)),
+        onAdFailedToLoad: (_) => emit(state.copyWith(result_interstitialAd: null)),
+      ),
+    );
+  }
+
+  void showResultInterstitial() {
+
+    emit(state.copyWith(isLoadingResultInterstitial: true));
+
+    state.result_Interstial!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        loadResultInterstitialAd();
+        emit(state.copyWith(isLoadingResultInterstitial: false));
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        ad.dispose();
+        loadResultInterstitialAd();
+        emit(state.copyWith(isLoadingResultInterstitial: false));
+      },
+    );
+
+    Future.delayed(const Duration(milliseconds: 200), () {
+      state.result_Interstial?.show();
+    });
+  }
+
 }

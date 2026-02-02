@@ -71,7 +71,7 @@ class MathChampTheme {
         ),
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: Colors.white,
       shadowColor: Colors.black12,
       elevation: 4,
@@ -119,7 +119,7 @@ class MathChampTheme {
         ),
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: const Color(0xFF1E1E1E),
       shadowColor: Colors.black45,
       elevation: 4,

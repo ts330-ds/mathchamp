@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "354556057493",
+    "project_id": "mathchamp-21808",
+    "storage_bucket": "mathchamp-21808.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:354556057493:android:6cc317d8c75a991ca4089c",
+        "android_client_info": {
+          "package_name": "com.tsanalysis.mathchamp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8Ap2R-53fpxVkiZw8Ds6PYTAEK7lEmZU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

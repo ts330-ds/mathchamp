@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mathchamp/ads/adsCubit.dart';
+import 'package:mathchamp/feature/2Player/player_2_screen.dart';
 import 'package:mathchamp/feature/home/commonStartGameScreen.dart';
 import 'package:mathchamp/feature/home/homeScreen.dart';
 import 'package:mathchamp/feature/questions/questionScreen.dart';
@@ -25,7 +26,8 @@ class RouterConfiguration {
           myroute(Paths.settingScreen, SettingScreen()),
           myroute(Paths.childProfileScreen, ChildProfile()),
           myroute(Paths.commonStartGameScreen, CommonStartGamescreen()),
-          myroute(Paths.questionScreen, QuestionScreen())
+          myroute(Paths.questionScreen, QuestionScreen()),
+          myroute(Paths.player_2_screen, Player2Screen()),
         ],
         errorBuilder: (context, state) {
           return const ErrorScreen();

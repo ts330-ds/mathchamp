@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:mathchamp/ads/adsCubit.dart';
+import 'package:mathchamp/feature/bloc/player_2_cubit.dart';
 import 'package:mathchamp/feature/home/cubit/gameDetailCubit.dart';
 import 'package:mathchamp/feature/questions/cubit/questionCubit.dart';
 import 'package:mathchamp/routes/routerConfig.dart';
@@ -19,6 +20,10 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await MobileAds.instance.initialize();
   prefs = await SharedPreferences.getInstance();
+  if(prefs.getBool("backgroundMusic")==null){
+    print("yaa its nulll");
+    prefs.setBool('backgroundMusic', true);
+  }
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
@@ -33,6 +38,7 @@ Future<void> main() async {
         BlocProvider<SettingsCubit>(create: (_) => SettingsCubit(prefs)),
         BlocProvider<GameDetailCubit>(create: (_) => GameDetailCubit([("Easy", 11, true)])),
         BlocProvider<QuestionsCubit>(create: (_) => QuestionsCubit()),
+        BlocProvider<Player2Cubit>(create: (_) => Player2Cubit()),
         BlocProvider<AdCubit>(
             create: (_) => AdCubit()),
       ],

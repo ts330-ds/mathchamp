@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:mathchamp/feature/bloc/player_2_cubit.dart';
+import 'package:mathchamp/feature/bloc/player_2_state.dart';
 import 'package:mathchamp/feature/home/cubit/gameDetailCubit.dart';
 import 'package:mathchamp/feature/home/cubit/gameDetailState.dart';
 import 'package:mathchamp/feature/questions/cubit/questionState.dart';
@@ -112,6 +114,29 @@ class CommonStartGamescreen extends StatelessWidget {
                             btnName: "Start Game",
                           );
                         }),
+
+                      /*  BlocBuilder<Player2Cubit, Player2State>(builder: (context, playerstate) {
+                          final player2Cubit = context.read<Player2Cubit>();
+                          if (playerstate.isLoading) {
+                            return CircularProgressIndicator();
+                          }
+                          return CustomBackButton(
+                            onPressed: () {
+                              player2Cubit.generateQuestions(
+                                numberOfQuestions: state.numberOfQuestions ?? 10,
+                                range: state.selectedDifficulty ?? ("Easy", 10),
+                                gameHeading: state.gameHeading ?? 'Addition',
+                                firstDigit: state.firstDigit ?? 1,
+                                lastDigit: state.lastDigit ?? 1,
+                              );
+                              context.push(Paths.player_2_screen);
+                            },
+                            painters: SquareButtonPainter(context: context),
+                            iconData: Icons.add,
+                            btnName: "2 Players",
+                          );
+                        }),
+*/
                       ],
                     ),
                   ),

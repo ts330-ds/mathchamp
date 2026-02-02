@@ -17,7 +17,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     language: prefs.getString("language") ?? "en",
     numberOfQuestions: prefs.getInt("numberOfQuestions") ?? 10,
     currentUser: prefs.getString("currentUser")??"No User"
-  ));
+  )){
+    toggleMusic(state.backgroundMusic);
+  }
 
   void addUser(String name) {
     final updated = [...state.userList, name];
