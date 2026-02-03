@@ -129,10 +129,14 @@ class AdCubit extends Cubit<AdsState> {
   }
 
   void showResultInterstitial() {
+    final resultAd = state.result_Interstial;
+    if (resultAd == null) {
+      return;
+    }
 
     emit(state.copyWith(isLoadingResultInterstitial: true));
 
-    state.result_Interstial!.fullScreenContentCallback = FullScreenContentCallback(
+    resultAd.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
         loadResultInterstitialAd();
@@ -146,7 +150,7 @@ class AdCubit extends Cubit<AdsState> {
     );
 
     Future.delayed(const Duration(milliseconds: 200), () {
-      state.result_Interstial?.show();
+      resultAd.show();
     });
   }
 
