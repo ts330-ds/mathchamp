@@ -2,7 +2,6 @@
 //
 //     final gameDetailState = gameDetailStateFromJson(jsonString);
 
-import 'dart:convert';
 
 
 class GameDetailState {

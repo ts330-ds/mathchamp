@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class MathChampTheme {
@@ -53,6 +54,11 @@ class MathChampTheme {
       backgroundColor: const Color(0xFF6C63FF),
       foregroundColor: Colors.white,
       elevation: 0,
+      systemOverlayStyle: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
       titleTextStyle: GoogleFonts.fredoka(
         fontSize: 24,
         fontWeight: FontWeight.bold,
@@ -192,6 +198,11 @@ class MathChampTheme {
       backgroundColor: const Color(0xFF7C4DFF),
       foregroundColor: Colors.white,
       elevation: 0,
+      systemOverlayStyle: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
       titleTextStyle: GoogleFonts.fredoka(
         fontSize: 24,
         fontWeight: FontWeight.bold,

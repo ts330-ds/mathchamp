@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mathchamp/feature/setting/cubit/settingCubit.dart';
 import 'package:mathchamp/feature/setting/cubit/settingState.dart';
 import 'package:mathchamp/main.dart';
+import 'package:mathchamp/services/analyticsService.dart';
 import 'package:mathchamp/utils/custom_theme.dart';
 
 class ChildProfile extends StatefulWidget {
@@ -157,8 +158,10 @@ class _ChildProfileState extends State<ChildProfile> {
                         if (name.isNotEmpty) {
                           if (index != null) {
                             context.read<SettingsCubit>().updateUser(name, index);
+                            AnalyticsService.instance.logProfileUpdated();
                           } else {
                             context.read<SettingsCubit>().addUser(name);
+                            AnalyticsService.instance.logProfileCreated();
                           }
                         }
                         context.pop();
@@ -264,6 +267,7 @@ class _ChildProfileState extends State<ChildProfile> {
                     child: GestureDetector(
                       onTap: () {
                         context.read<SettingsCubit>().removeUser(index);
+                        AnalyticsService.instance.logProfileDeleted();
                         Navigator.of(ctx).pop();
                       },
                       child: Container(
@@ -298,8 +302,9 @@ class _ChildProfileState extends State<ChildProfile> {
 
   @override
   void initState() {
-    _loadNames();
     super.initState();
+    _loadNames();
+    AnalyticsService.instance.logScreen('child_profile_screen');
   }
 
   @override

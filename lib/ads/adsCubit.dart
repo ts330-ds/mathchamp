@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:mathchamp/ads/unitIds.dart';
@@ -11,43 +12,70 @@ class AdCubit extends Cubit<AdsState> {
   int _navigationCount = 0; // For Interstitial & Rewarded
 
   AdCubit() : super(AdsState.initial()) {
-    loadBannerAd();
+    // Banner ads are now managed by each screen widget (_HomeBannerAd,
+    // _CommonBannerAd) to avoid the "AdWidget already in tree" crash.
+    // Only interstitial / rewarded ads are pre-loaded here.
     loadInterstitialAd();
     loadRewardedAd();
-    loadCommonBannerAd();
     loadResultInterstitialAd();
   }
 
   // ---------------- Banner ----------------
   void loadBannerAd() {
+    _loadAdaptiveBanner(
+      unitId: UnitIds.bannerUnitID,
+      onLoaded: (ad, size) => emit(state.copyWith(bannerAd: ad, bannerAdSize: size)),
+      onFailed: () => emit(state.copyWith(bannerAd: null)),
+    );
+  }
+
+  void loadCommonBannerAd() {
+    _loadAdaptiveBanner(
+      unitId: UnitIds.common_bannerUnitID,
+      onLoaded: (ad, size) => emit(state.copyWith(common_bannerAd: ad, commonBannerAdSize: size)),
+      onFailed: () => emit(state.copyWith(common_bannerAd: null)),
+    );
+  }
+
+  /// Loads a banner using an anchored adaptive size for the current screen width.
+  /// Falls back to [AdSize.banner] if the adaptive size cannot be determined.
+  Future<void> _loadAdaptiveBanner({
+    required String unitId,
+    required void Function(BannerAd ad, AdSize size) onLoaded,
+    required void Function() onFailed,
+  }) async {
+    AdSize adSize;
+    try {
+      // Get the logical screen width in dp. PlatformDispatcher.instance.views
+      // is always available even without a BuildContext.
+      final view = PlatformDispatcher.instance.implicitView;
+      final widthPx = view?.physicalSize.width ?? 360;
+      final dpr = view?.devicePixelRatio ?? 1.0;
+      final widthDp = (widthPx / dpr).truncate();
+
+      final adaptive = await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+        widthDp,
+      );
+      adSize = adaptive ?? AdSize.banner;
+    } catch (_) {
+      adSize = AdSize.banner;
+    }
+
     final banner = BannerAd(
-      adUnitId: UnitIds.bannerUnitID,
-      size: AdSize.banner,
+      adUnitId: unitId,
+      size: adSize,
       request: const AdRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          emit(state.copyWith(bannerAd: ad as BannerAd)); // listener ka ad object use karo
+        onAdLoaded: (ad) => onLoaded(ad as BannerAd, adSize),
+        onAdFailedToLoad: (ad, error) {
+          debugPrint('BannerAd failed to load: $error');
+          ad.dispose();
+          onFailed();
         },
-        onAdFailedToLoad: (_, __) => emit(state.copyWith(bannerAd: null)),
       ),
     );
 
     banner.load();
-  }
-  void loadCommonBannerAd() {
-    final common_banner_ad = BannerAd(
-      adUnitId: UnitIds.common_bannerUnitID,
-      size: AdSize.banner,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          emit(state.copyWith(common_bannerAd: ad as BannerAd)); // listener ka ad object use karo
-        },
-        onAdFailedToLoad: (_, __) => emit(state.copyWith(common_bannerAd: null)),
-      ),
-    );
-
-    common_banner_ad.load();
   }
 
 
@@ -65,7 +93,7 @@ class AdCubit extends Cubit<AdsState> {
 
   void showInterstitial(VoidCallback onComplete) {
     _navigationCount++;
-    print("The navigationCount is ${_navigationCount}");
+    print("The navigationCount is $_navigationCount");
     if (_navigationCount % 3 != 0 || state.interstitialAd == null) {
       onComplete();
       return;
@@ -129,25 +157,25 @@ class AdCubit extends Cubit<AdsState> {
   }
 
   void showResultInterstitial() {
-
+    final resultAd = state.result_Interstial;
+    if (resultAd == null) {
+      return;
+    }
     emit(state.copyWith(isLoadingResultInterstitial: true));
-
-    state.result_Interstial!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        loadResultInterstitialAd();
-        emit(state.copyWith(isLoadingResultInterstitial: false));
-      },
-      onAdFailedToShowFullScreenContent: (ad, error) {
-        ad.dispose();
-        loadResultInterstitialAd();
-        emit(state.copyWith(isLoadingResultInterstitial: false));
-      },
-    );
-
-    Future.delayed(const Duration(milliseconds: 200), () {
-      state.result_Interstial?.show();
-    });
+        resultAd.fullScreenContentCallback = FullScreenContentCallback(
+          onAdDismissedFullScreenContent: (ad) {
+            ad.dispose();
+            loadResultInterstitialAd();
+            emit(state.copyWith(isLoadingResultInterstitial: false));
+          },
+          onAdFailedToShowFullScreenContent: (ad, error) {
+            ad.dispose();
+            loadResultInterstitialAd();
+            emit(state.copyWith(isLoadingResultInterstitial: false));
+          },
+        );
+        Future.delayed(const Duration(milliseconds: 200), () {
+          resultAd.show();
+        });
   }
-
 }

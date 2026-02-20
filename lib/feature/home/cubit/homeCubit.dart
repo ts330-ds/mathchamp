@@ -5,6 +5,7 @@ import 'package:mathchamp/feature/home/cubit/homeState.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../setting/model/quizName.dart';
+import '../../../services/analyticsService.dart';
 
 class HomeCubit extends Cubit<HomeState>{
   final SharedPreferences prefs;
@@ -29,8 +30,10 @@ class HomeCubit extends Cubit<HomeState>{
   }
 
   selectQuiz(QuizGame quiz){
-    prefs.setString("quiz", quiz.name??"Addition");
-    emit(state.copyWith(quiz: quiz.name??"Addition"));
+    final name = quiz.name ?? "Addition";
+    prefs.setString("quiz", name);
+    emit(state.copyWith(quiz: name));
+    AnalyticsService.instance.logQuizTypeSelected(name);
   }
 
 }

@@ -94,7 +94,7 @@ class _DoubleWaveAppBarState extends State<DoubleWaveAppBar> with SingleTickerPr
                               items: state.userList
                                   .map((user) => DropdownMenuItem(
                                 value: user,
-                                child: Text("$user",style: Theme.of(context).textTheme.headlineSmall),
+                                child: Text(user,style: Theme.of(context).textTheme.headlineSmall),
                               )).toList(),
                               onChanged: (val) {
                                 if (val != null) {

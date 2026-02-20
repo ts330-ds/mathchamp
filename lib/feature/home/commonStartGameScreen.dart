@@ -7,11 +7,12 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:mathchamp/feature/home/cubit/gameDetailCubit.dart';
 import 'package:mathchamp/feature/home/cubit/gameDetailState.dart';
 import 'package:mathchamp/feature/questions/cubit/questionState.dart';
+import 'package:mathchamp/feature/setting/cubit/settingCubit.dart';
 import 'package:mathchamp/utils/custom_theme.dart';
 
-import '../../ads/adsCubit.dart';
-import '../../ads/adsState.dart';
+import '../../ads/unitIds.dart';
 import '../../routes/paths.dart';
+import '../../services/analyticsService.dart';
 import '../questions/cubit/questionCubit.dart';
 
 class CommonStartGamescreen extends StatelessWidget {
@@ -42,6 +43,10 @@ class CommonStartGamescreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Log screen view once per navigation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AnalyticsService.instance.logScreen('common_start_game_screen');
+    });
     return SafeArea(
       child: Scaffold(
         body: Container(
@@ -67,8 +72,6 @@ class CommonStartGamescreen extends StatelessWidget {
                     _buildHeader(context, state),
                     SizedBox(height: 20.w),
                     // Game Info Card
-                    _buildGameInfoCard(context, state),
-                    SizedBox(height: 20.w),
                     // Settings Section
                     Expanded(
                       child: SingleChildScrollView(
@@ -87,21 +90,9 @@ class CommonStartGamescreen extends StatelessWidget {
                     // Start Button
                     _buildStartButton(context, state),
                     SizedBox(height: 10.w),
-                    // Banner Ad
-                    BlocBuilder<AdCubit, AdsState>(
-                      builder: (context, state) {
-                        if (state.common_bannerAd != null) {
-                          return Center(
-                            child: SizedBox(
-                              width: state.common_bannerAd!.size.width.toDouble(),
-                              height: state.common_bannerAd!.size.height.toDouble(),
-                              child: AdWidget(ad: state.common_bannerAd!),
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
-                    ),
+                    // Banner Ad — uses its own BannerAd instance to avoid
+                    // "AdWidget already in widget tree" error in release mode
+                    const _CommonBannerAd(),
                   ],
                 );
               },
@@ -505,62 +496,503 @@ class CommonStartGamescreen extends StatelessWidget {
           );
         }
 
-        return GestureDetector(
-          onTap: () {
-            questionsCubit.generateQuestions(
-              numberOfQuestions: state.numberOfQuestions ?? 10,
-              range: state.selectedDifficulty ?? ("Easy", 10),
-              gameHeading: state.gameHeading ?? 'Addition',
-              firstDigit: state.firstDigit ?? 1,
-              lastDigit: state.lastDigit ?? 1,
-            );
-            context.push(Paths.questionScreen);
-          },
-          child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 18.w),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF6C63FF), Color(0xFF8B5CF6)],
+        return Column(
+          children: [
+            // ── Single Player ──
+            GestureDetector(
+              onTap: () {
+                final gameType = state.gameHeading ?? 'Addition';
+                final numQ = state.numberOfQuestions ?? 10;
+                final diff = state.selectedDifficulty?.$1 ?? 'Easy';
+                AnalyticsService.instance.logQuizStarted(
+                  gameType: gameType,
+                  numberOfQuestions: numQ,
+                  difficulty: diff,
+                );
+                questionsCubit.generateQuestions(
+                  numberOfQuestions: numQ,
+                  range: state.selectedDifficulty ?? ("Easy", 10),
+                  gameHeading: gameType,
+                  firstDigit: state.firstDigit ?? 1,
+                  lastDigit: state.lastDigit ?? 1,
+                );
+                context.push(Paths.questionScreen);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: 18.w),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6C63FF), Color(0xFF8B5CF6)],
+                  ),
+                  borderRadius: BorderRadius.circular(20.w),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF6C63FF).withOpacity(0.4),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Let's Go!",
+                      style: GoogleFonts.fredoka(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Container(
+                      padding: EdgeInsets.all(6.w),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFD93D),
+                        borderRadius: BorderRadius.circular(10.w),
+                      ),
+                      child: Icon(
+                        Icons.play_arrow_rounded,
+                        color: const Color(0xFF2D3436),
+                        size: 24.w,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              borderRadius: BorderRadius.circular(20.w),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF6C63FF).withOpacity(0.4),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
-                ),
-              ],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Let's Go!",
-                  style: GoogleFonts.fredoka(
-                    fontSize: 22.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+            SizedBox(height: 12.w),
+            // ── 2 Player ──
+            GestureDetector(
+              onTap: () {
+                AnalyticsService.instance.logTwoPlayerModeOpened(
+                  state.gameHeading ?? 'Addition',
+                );
+                _show2PlayerNameDialog(context, state, questionsCubit);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: 18.w),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
                   ),
+                  borderRadius: BorderRadius.circular(20.w),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFFF6B6B).withOpacity(0.4),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-                SizedBox(width: 8.w),
-                Container(
-                  padding: EdgeInsets.all(6.w),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFD93D),
-                    borderRadius: BorderRadius.circular(10.w),
-                  ),
-                  child: Icon(
-                    Icons.play_arrow_rounded,
-                    color: const Color(0xFF2D3436),
-                    size: 24.w,
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '2 Player Mode',
+                      style: GoogleFonts.fredoka(
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Container(
+                      padding: EdgeInsets.all(6.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(10.w),
+                      ),
+                      child: Text('👥', style: TextStyle(fontSize: 20.sp)),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         );
       },
+    );
+  }
+
+  void _show2PlayerNameDialog(
+      BuildContext context,
+      GameDetailState state,
+      QuestionsCubit questionsCubit) {
+    final p1Controller = TextEditingController();
+    final p2Controller = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    // Read saved user names from SettingsCubit
+    final userList =
+        context.read<SettingsCubit>().state.userList;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          // Helper: build a row of tappable name chips
+          Widget buildNameChips(
+              List<String> names,
+              TextEditingController ctrl,
+              Color chipColor) {
+            if (names.isEmpty) return const SizedBox.shrink();
+            return Wrap(
+              spacing: 8.w,
+              runSpacing: 6.w,
+              children: names.map((name) {
+                final isSelected =
+                    ctrl.text.trim().toLowerCase() == name.toLowerCase();
+                return GestureDetector(
+                  onTap: () {
+                    setDialogState(() => ctrl.text = name);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 14.w, vertical: 7.w),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? chipColor.withOpacity(0.18)
+                          : const Color(0xFFF0F0F0),
+                      borderRadius: BorderRadius.circular(20.w),
+                      border: Border.all(
+                        color: isSelected ? chipColor : Colors.transparent,
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Text(
+                      name,
+                      style: GoogleFonts.fredoka(
+                        fontSize: 14.sp,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? chipColor
+                            : const Color(0xFF636E72),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          }
+
+          return Dialog(
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(28.w)),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(24.w),
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Header ──
+                      Center(
+                        child: Column(
+                          children: [
+                            Text('👥',
+                                style: TextStyle(fontSize: 48.sp)),
+                            SizedBox(height: 8.w),
+                            Text(
+                              '2 Player Mode',
+                              style: GoogleFonts.fredoka(
+                                fontSize: 24.sp,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF2D3436),
+                              ),
+                            ),
+                            SizedBox(height: 4.w),
+                            Text(
+                              userList.isEmpty
+                                  ? 'Enter names for both players'
+                                  : 'Choose or type player names',
+                              style: GoogleFonts.nunito(
+                                  fontSize: 14.sp,
+                                  color: const Color(0xFF636E72)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 20.w),
+
+                      // ── Player 1 ──
+                      Row(
+                        children: [
+                          Text('🔵',
+                              style: TextStyle(fontSize: 18.sp)),
+                          SizedBox(width: 8.w),
+                          Text(
+                            'Player 1',
+                            style: GoogleFonts.fredoka(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFF6C63FF),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.w),
+                      // Chips for P1
+                      buildNameChips(userList, p1Controller,
+                          const Color(0xFF6C63FF)),
+                      if (userList.isNotEmpty) SizedBox(height: 10.w),
+                      TextFormField(
+                        controller: p1Controller,
+                        onChanged: (_) => setDialogState(() {}),
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty)
+                                ? 'Enter Player 1 name'
+                                : null,
+                        decoration: InputDecoration(
+                          prefixIcon: Padding(
+                            padding: EdgeInsets.all(10.w),
+                            child: Text('🔵',
+                                style: TextStyle(fontSize: 18.sp)),
+                          ),
+                          hintText: 'Player 1 Name',
+                          hintStyle: GoogleFonts.nunito(
+                              color: const Color(0xFF9E9E9E)),
+                        ),
+                        style: GoogleFonts.fredoka(fontSize: 16.sp),
+                        textCapitalization: TextCapitalization.words,
+                      ),
+
+                      SizedBox(height: 18.w),
+
+                      // ── Player 2 ──
+                      Row(
+                        children: [
+                          Text('🔴',
+                              style: TextStyle(fontSize: 18.sp)),
+                          SizedBox(width: 8.w),
+                          Text(
+                            'Player 2',
+                            style: GoogleFonts.fredoka(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFFFF6B6B),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8.w),
+                      // Chips for P2
+                      buildNameChips(userList, p2Controller,
+                          const Color(0xFFFF6B6B)),
+                      if (userList.isNotEmpty) SizedBox(height: 10.w),
+                      TextFormField(
+                        controller: p2Controller,
+                        onChanged: (_) => setDialogState(() {}),
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty)
+                                ? 'Enter Player 2 name'
+                                : null,
+                        decoration: InputDecoration(
+                          prefixIcon: Padding(
+                            padding: EdgeInsets.all(10.w),
+                            child: Text('🔴',
+                                style: TextStyle(fontSize: 18.sp)),
+                          ),
+                          hintText: 'Player 2 Name',
+                          hintStyle: GoogleFonts.nunito(
+                              color: const Color(0xFF9E9E9E)),
+                        ),
+                        style: GoogleFonts.fredoka(fontSize: 16.sp),
+                        textCapitalization: TextCapitalization.words,
+                      ),
+
+                      SizedBox(height: 24.w),
+
+                      // ── Buttons ──
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => Navigator.of(ctx).pop(),
+                              child: Container(
+                                padding:
+                                    EdgeInsets.symmetric(vertical: 14.w),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF0F0F0),
+                                  borderRadius:
+                                      BorderRadius.circular(16.w),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'Cancel',
+                                    style: GoogleFonts.fredoka(
+                                        fontSize: 16.sp,
+                                        color: const Color(0xFF636E72)),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () {
+                                if (!formKey.currentState!.validate())
+                                  return;
+                                final p1 =
+                                    p1Controller.text.trim();
+                                final p2 =
+                                    p2Controller.text.trim();
+                                Navigator.of(ctx).pop();
+                                final gameType = state.gameHeading ?? 'Addition';
+                                final numQ = state.numberOfQuestions ?? 10;
+                                final diff = state.selectedDifficulty?.$1 ?? 'Easy';
+                                AnalyticsService.instance.logTwoPlayerGameStarted(
+                                  gameType: gameType,
+                                  numberOfQuestions: numQ,
+                                  difficulty: diff,
+                                  player1Name: p1,
+                                  player2Name: p2,
+                                );
+                                questionsCubit.generateQuestions(
+                                  numberOfQuestions: numQ,
+                                  range: state.selectedDifficulty ??
+                                      ("Easy", 10),
+                                  gameHeading: gameType,
+                                  firstDigit: state.firstDigit ?? 1,
+                                  lastDigit: state.lastDigit ?? 1,
+                                );
+                                context.push(
+                                  Paths.player_2_screen,
+                                  extra: {
+                                    'player1': p1,
+                                    'player2': p2
+                                  },
+                                );
+                              },
+                              child: Container(
+                                padding:
+                                    EdgeInsets.symmetric(vertical: 14.w),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFFFF6B6B),
+                                      Color(0xFFFF8E53)
+                                    ],
+                                  ),
+                                  borderRadius:
+                                      BorderRadius.circular(16.w),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFFFF6B6B)
+                                          .withOpacity(0.4),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "Let's Play! 🎮",
+                                    style: GoogleFonts.fredoka(
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ── Self-contained banner that owns its BannerAd lifecycle ──────────────────
+// Each navigation to CommonStartGamescreen creates a NEW instance of this
+// widget, which loads a fresh BannerAd. This prevents the
+// "AdWidget is already in the widget tree" crash in release mode.
+class _CommonBannerAd extends StatefulWidget {
+  const _CommonBannerAd();
+
+  @override
+  State<_CommonBannerAd> createState() => _CommonBannerAdState();
+}
+
+class _CommonBannerAdState extends State<_CommonBannerAd> {
+  BannerAd? _bannerAd;
+  AdSize? _adSize;
+  bool _isLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAd();
+  }
+
+  Future<void> _loadAd() async {
+    AdSize adSize;
+    try {
+      final adaptive =
+          await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+        MediaQuery.of(context).size.width.truncate(),
+      );
+      adSize = adaptive ?? AdSize.banner;
+    } catch (_) {
+      adSize = AdSize.banner;
+    }
+
+    final banner = BannerAd(
+      adUnitId: UnitIds.common_bannerUnitID,
+      size: adSize,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          if (mounted) {
+            setState(() {
+              _bannerAd = ad as BannerAd;
+              _adSize = adSize;
+              _isLoaded = true;
+            });
+          }
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    );
+
+    banner.load();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_isLoaded || _bannerAd == null || _adSize == null) {
+      return const SizedBox.shrink();
+    }
+    return SizedBox(
+      width: double.infinity,
+      height: _adSize!.height.toDouble(),
+      child: AdWidget(ad: _bannerAd!),
     );
   }
 }

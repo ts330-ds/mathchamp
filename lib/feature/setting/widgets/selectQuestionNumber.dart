@@ -5,10 +5,10 @@ class QuestionToggle extends StatefulWidget {
   final ValueChanged<int> onChanged;
 
   const QuestionToggle({
-    Key? key,
+    super.key,
     required this.selectedValue,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<QuestionToggle> createState() => _QuestionToggleState();

@@ -1,3 +1,4 @@
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mathchamp/ads/adsCubit.dart';
@@ -17,9 +18,10 @@ class RouterConfiguration {
   static GoRouter router(AdCubit asCubit) {
     return GoRouter(
         observers: [
-          AdNavigatorObserver(asCubit), // same observer class works
+          AdNavigatorObserver(asCubit),
+          FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
         ],
-        initialLocation: Paths.homeScreen,
+        initialLocation: Paths.splashScreen,
         routes: [
           myroute(Paths.splashScreen, SplashScreen()),
           myroute(Paths.homeScreen, HomeScreen()),
@@ -27,7 +29,16 @@ class RouterConfiguration {
           myroute(Paths.childProfileScreen, ChildProfile()),
           myroute(Paths.commonStartGameScreen, CommonStartGamescreen()),
           myroute(Paths.questionScreen, QuestionScreen()),
-          myroute(Paths.player_2_screen, Player2Screen()),
+          GoRoute(
+            path: Paths.player_2_screen,
+            builder: (context, state) {
+              final extra = state.extra as Map<String, String>? ?? {};
+              return Player2Screen(
+                player1Name: extra['player1'] ?? 'Player 1',
+                player2Name: extra['player2'] ?? 'Player 2',
+              );
+            },
+          ),
         ],
         errorBuilder: (context, state) {
           return const ErrorScreen();

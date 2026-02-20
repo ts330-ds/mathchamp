@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mathchamp/feature/setting/cubit/settingState.dart';
 import 'package:mathchamp/feature/setting/model/quizName.dart';
+import 'package:mathchamp/services/analyticsService.dart';
 import 'package:mathchamp/services/musicPlayerService.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,7 +19,8 @@ class SettingsCubit extends Cubit<SettingsState> {
     numberOfQuestions: prefs.getInt("numberOfQuestions") ?? 10,
     currentUser: prefs.getString("currentUser")??"No User"
   )){
-    toggleMusic(state.backgroundMusic);
+    // trackAnalytics: false — startup restore of music state is not a user action
+    toggleMusic(state.backgroundMusic, trackAnalytics: false);
   }
 
   void addUser(String name) {
@@ -43,12 +45,17 @@ class SettingsCubit extends Cubit<SettingsState> {
   }
 
 
-  void toggleMusic(bool value) {
+  // trackAnalytics: true  → user tapped the toggle (log to Firebase)
+  // trackAnalytics: false → called internally on startup (do NOT log)
+  void toggleMusic(bool value, {bool trackAnalytics = true}) {
     final newValue = value;
     print("new value is $newValue");
     prefs.setBool("backgroundMusic", newValue);
     emit(state.copyWith(backgroundMusic: newValue));
-    newValue?MusicService.play():MusicService.stop();
+    newValue ? MusicService.play() : MusicService.stop();
+    if (trackAnalytics) {
+      AnalyticsService.instance.logMusicToggled(newValue);
+    }
   }
 
 
@@ -61,6 +68,7 @@ class SettingsCubit extends Cubit<SettingsState> {
   void setQuestions(int count) {
     prefs.setInt("numberOfQuestions", count);
     emit(state.copyWith(numberOfQuestions: count));
+    AnalyticsService.instance.logDefaultQuestionsChanged(count);
   }
 
   void setCurrentUser(String name) {

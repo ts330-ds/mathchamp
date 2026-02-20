@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mathchamp/ads/adsCubit.dart';
-import 'package:mathchamp/ads/adsState.dart';
 import 'package:mathchamp/feature/home/cubit/gameDetailCubit.dart';
 import 'package:mathchamp/feature/home/cubit/gameDetailState.dart';
 import 'package:mathchamp/feature/questions/cubit/questionCubit.dart';
@@ -13,6 +12,7 @@ import 'package:mathchamp/feature/questions/widget/gameCompleteDialog.dart';
 import 'package:mathchamp/feature/setting/cubit/settingCubit.dart';
 import 'package:mathchamp/feature/setting/cubit/settingState.dart';
 import 'package:mathchamp/utils/custom_theme.dart';
+import 'package:mathchamp/services/analyticsService.dart';
 
 class QuestionScreen extends StatelessWidget {
   const QuestionScreen({super.key});
@@ -112,6 +112,10 @@ class QuestionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Log screen view once per navigation
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AnalyticsService.instance.logScreen('question_screen');
+    });
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -119,6 +123,13 @@ class QuestionScreen extends StatelessWidget {
         final shouldExit = await _showQuitDialog(context);
         if (!context.mounted) return;
         if (shouldExit == true) {
+          // Log quiz quit
+          final state = context.read<QuestionsCubit>().state;
+          AnalyticsService.instance.logQuizQuit(
+            gameType: state.quizName ?? 'Unknown',
+            questionIndex: state.currentIndex,
+            totalQuestions: state.questions.length,
+          );
           Navigator.of(context).pop();
         }
       },
@@ -143,19 +154,20 @@ class QuestionScreen extends StatelessWidget {
                       listener: (context, state) {
                         if (state.gameCompleted == true) {
                           final adCubit = context.read<AdCubit>();
-
-                          if (adCubit.state.rewardedAd != null) {
-                            adCubit.showRewardedAd((reward) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                showCongratsDialog(
-                                  context,
-                                  settingState.currentUser ?? "Math Champion",
-                                  state.totalTimeTaken?.inSeconds ?? 0,
-                                  gameState.firstDigit!,
-                                  gameState.lastDigit!,
-                                  gameState.gameHeading ?? "Addition",
-                                );
-                              });
+                          if (adCubit.state.result_Interstial != null) {
+                            adCubit.showResultInterstitial();
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              showCongratsDialog(
+                                context,
+                                settingState.currentUser ?? "Math Champion",
+                                state.totalTimeTaken?.inSeconds ?? 0,
+                                gameState.firstDigit!,
+                                gameState.lastDigit!,
+                                gameState.gameHeading ?? "Addition",
+                                state.correctCount,
+                                state.wrongCount,
+                                state.questions.length,
+                              );
                             });
                           } else {
                             showCongratsDialog(
@@ -165,8 +177,40 @@ class QuestionScreen extends StatelessWidget {
                               gameState.firstDigit!,
                               gameState.lastDigit!,
                               gameState.gameHeading ?? "Addition",
+                              state.correctCount,
+                              state.wrongCount,
+                              state.questions.length,
                             );
                           }
+                          // if (adCubit.state.rewardedAd != null) {
+                          //   adCubit.showRewardedAd((reward) {
+                          //     WidgetsBinding.instance.addPostFrameCallback((_) {
+                          //       showCongratsDialog(
+                          //         context,
+                          //         settingState.currentUser ?? "Math Champion",
+                          //         state.totalTimeTaken?.inSeconds ?? 0,
+                          //         gameState.firstDigit!,
+                          //         gameState.lastDigit!,
+                          //         gameState.gameHeading ?? "Addition",
+                          //         state.correctCount,
+                          //         state.wrongCount,
+                          //         state.questions.length,
+                          //       );
+                          //     });
+                          //   });
+                          // } else {
+                          //   showCongratsDialog(
+                          //     context,
+                          //     settingState.currentUser ?? "Math Champion",
+                          //     state.totalTimeTaken?.inSeconds ?? 0,
+                          //     gameState.firstDigit!,
+                          //     gameState.lastDigit!,
+                          //     gameState.gameHeading ?? "Addition",
+                          //     state.correctCount,
+                          //     state.wrongCount,
+                          //     state.questions.length,
+                          //   );
+                          // }
                         }
                       },
                       builder: (context, state) {
@@ -239,6 +283,12 @@ class QuestionScreen extends StatelessWidget {
             final shouldExit = await _showQuitDialog(context);
             if (!context.mounted) return;
             if (shouldExit == true) {
+              final qState = context.read<QuestionsCubit>().state;
+              AnalyticsService.instance.logQuizQuit(
+                gameType: qState.quizName ?? 'Unknown',
+                questionIndex: qState.currentIndex,
+                totalQuestions: qState.questions.length,
+              );
               context.pop();
             }
           },
@@ -297,8 +347,7 @@ class QuestionScreen extends StatelessWidget {
   }
 
   Widget _buildProgressBar(QuestionState state) {
-    double progress =
-        (state.currentIndex + 1) / state.questions.length;
+    double progress = (state.currentIndex + 1) / state.questions.length;
     return Container(
       height: 12.w,
       decoration: BoxDecoration(
@@ -317,7 +366,7 @@ class QuestionScreen extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(6.w),
             ),
-          ),//
+          ), //
           // Animated stars
           ...List.generate(state.questions.length, (index) {
             double position = (index + 1) / state.questions.length;
@@ -405,8 +454,8 @@ class QuestionScreen extends StatelessWidget {
           final isCorrect = option == question.correctAnswer;
 
           // Colors for options
-          Color bgColor = MathChampTheme.quizCardColors[
-              index % MathChampTheme.quizCardColors.length];
+          Color bgColor = MathChampTheme
+              .quizCardColors[index % MathChampTheme.quizCardColors.length];
           Color textColor = const Color(0xFF2D3436);
 
           if (isSelected) {
@@ -417,14 +466,14 @@ class QuestionScreen extends StatelessWidget {
           }
 
           return GestureDetector(
-            onTap: () {
-              cubit.selectOption(option);
-              if (isCorrect) {
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  cubit.nextQuestion();
-                });
-              }
-            },
+            onTap: state.selectedOption != null
+                ? null // already answered, ignore taps
+                : () {
+                    cubit.selectOption(option);
+                    Future.delayed(const Duration(milliseconds: 600), () {
+                      cubit.nextQuestion();
+                    });
+                  },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               curve: Curves.easeInOut,

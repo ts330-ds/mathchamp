@@ -9,6 +9,7 @@ import 'package:mathchamp/services/musicPlayerService.dart';
 import 'package:mathchamp/utils/custom_theme.dart';
 
 import '../main.dart';
+import '../services/analyticsService.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -97,6 +98,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Generate floating bubbles
     _generateBubbles();
+
+    // Log app open & splash screen view
+    AnalyticsService.instance.logAppOpen();
+    AnalyticsService.instance.logScreen('splash_screen');
 
     // Start animations
     _logoController.forward();

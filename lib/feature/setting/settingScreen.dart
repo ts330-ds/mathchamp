@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:mathchamp/feature/setting/cubit/settingCubit.dart';
 import 'package:mathchamp/feature/setting/cubit/settingState.dart';
 import 'package:mathchamp/routes/paths.dart';
+import 'package:mathchamp/services/analyticsService.dart';
 import 'package:mathchamp/services/musicPlayerService.dart';
 
 class SettingScreen extends StatelessWidget {
@@ -15,6 +16,9 @@ class SettingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      AnalyticsService.instance.logScreen('settings_screen');
+    });
     final cubit2 = context.read<SettingsCubit>();
     if (cubit2.state.backgroundMusic) {
       MusicService.play();
@@ -429,7 +433,7 @@ class SettingScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(12.w),
             ),
             child: Text(
-              'v1.0',
+              'v4.0',
               style: GoogleFonts.nunito(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.bold,

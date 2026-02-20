@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -8,19 +9,24 @@ import 'package:mathchamp/feature/bloc/player_2_cubit.dart';
 import 'package:mathchamp/feature/home/cubit/gameDetailCubit.dart';
 import 'package:mathchamp/feature/questions/cubit/questionCubit.dart';
 import 'package:mathchamp/routes/routerConfig.dart';
-import 'package:mathchamp/services/musicPlayerService.dart';
 import 'package:mathchamp/utils/custom_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'feature/setting/cubit/settingCubit.dart';
+import 'firebase_options.dart';
+import 'services/notificationService.dart';
 
 late final SharedPreferences prefs;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await MobileAds.instance.initialize();
+
+  // Initialize push notification service (FCM + local notifications)
+  await NotificationService.instance.initialize();
   prefs = await SharedPreferences.getInstance();
-  if(prefs.getBool("backgroundMusic")==null){
+  if (prefs.getBool("backgroundMusic") == null) {
     print("yaa its nulll");
     prefs.setBool('backgroundMusic', true);
   }
@@ -29,6 +35,15 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
+  // Make the status bar transparent with light (white) icons
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light, // white icons on Android
+    statusBarBrightness: Brightness.dark, // white icons on iOS
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.light,
+  ));
+
   runApp(ScreenUtilInit(
     designSize: const Size(360, 690),
     minTextAdapt: true,
@@ -36,14 +51,13 @@ Future<void> main() async {
     builder: (context, child) => MultiBlocProvider(
       providers: [
         BlocProvider<SettingsCubit>(create: (_) => SettingsCubit(prefs)),
-        BlocProvider<GameDetailCubit>(create: (_) => GameDetailCubit([("Easy", 11, true)])),
+        BlocProvider<GameDetailCubit>(
+            create: (_) => GameDetailCubit([("Easy", 11, true)])),
         BlocProvider<QuestionsCubit>(create: (_) => QuestionsCubit()),
         BlocProvider<Player2Cubit>(create: (_) => Player2Cubit()),
-        BlocProvider<AdCubit>(
-            create: (_) => AdCubit()),
+        BlocProvider<AdCubit>(create: (_) => AdCubit()),
       ],
-      child: const MyApp(
-      ),
+      child: const MyApp(),
     ),
   ));
 }
@@ -51,16 +65,27 @@ Future<void> main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     final adCubit = context.read<AdCubit>();
-    return MaterialApp.router(
-        title: 'Flutter Demo',
-        theme: MathChampTheme.lightTheme,
-        debugShowCheckedModeBanner: false,
-        darkTheme: MathChampTheme.darkTheme,
-        routerConfig: RouterConfiguration.router(adCubit));
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        // Status bar — always transparent with white icons
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,   // Android
+        statusBarBrightness: Brightness.dark,         // iOS
+        // Navigation bar — always transparent with white icons
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+      child: MaterialApp.router(
+          title: 'MathChamp',
+          theme: MathChampTheme.lightTheme,
+          darkTheme: MathChampTheme.lightTheme, // Force light theme even on dark OS
+          themeMode: ThemeMode.light,           // Never use dark theme
+          debugShowCheckedModeBanner: false,
+          routerConfig: RouterConfiguration.router(adCubit)),
+    );
   }
 }
 
@@ -90,8 +115,6 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -109,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
         onPressed: _incrementCounter,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      ),
     );
   }
 }

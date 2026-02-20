@@ -13,11 +13,11 @@ class CustomQuizDropdown extends StatelessWidget {
   final List<QuizGame> list;
 
   const CustomQuizDropdown({
-    Key? key,
+    super.key,
     this.onChanged,
     required this.cubit,
     required this.list,
-  }) : super(key: key);
+  });
 
   String _getQuizEmoji(String? name) {
     switch (name) {

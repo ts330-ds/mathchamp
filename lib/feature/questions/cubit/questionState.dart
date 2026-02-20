@@ -8,8 +8,9 @@ class QuestionState {
   final DateTime? startTime;
   final Duration? totalTimeTaken;
   final int? selectedOption;
-  final bool? gameCompleted; // total quiz time
-  // range/difficulty range
+  final bool? gameCompleted;
+  final int correctCount;
+  final int wrongCount;
 
   QuestionState(
       {required this.quizName,
@@ -19,7 +20,9 @@ class QuestionState {
       this.totalTimeTaken,
       this.isLoading = false,
       this.selectedOption,
-      this.gameCompleted = false});
+      this.gameCompleted = false,
+      this.correctCount = 0,
+      this.wrongCount = 0});
 
   // CopyWith method to update specific fields
   QuestionState copyWith(
@@ -30,7 +33,10 @@ class QuestionState {
       Duration? totalTimeTaken,
       bool? isLoading,
       int? selectedOption,
-      bool? gameCompleted}) {
+      bool clearSelectedOption = false,
+      bool? gameCompleted,
+      int? correctCount,
+      int? wrongCount}) {
     return QuestionState(
         quizName: quizName ?? this.quizName,
         questions: questions ?? this.questions,
@@ -38,7 +44,9 @@ class QuestionState {
         startTime: startTime ?? this.startTime,
         totalTimeTaken: totalTimeTaken ?? this.totalTimeTaken,
         isLoading: isLoading ?? this.isLoading,
-        selectedOption: selectedOption ?? this.selectedOption,
-        gameCompleted: gameCompleted ?? this.gameCompleted);
+        selectedOption: clearSelectedOption ? null : (selectedOption ?? this.selectedOption),
+        gameCompleted: gameCompleted ?? this.gameCompleted,
+        correctCount: correctCount ?? this.correctCount,
+        wrongCount: wrongCount ?? this.wrongCount);
   }
 }
